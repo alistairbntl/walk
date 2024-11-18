@@ -1,5 +1,5 @@
 import pytest
-from data_access.CensusAPI import CensusAPIConfig
+from core.CensusAPI import CensusAPIConfig
 
 shared_test_data = [
     {
