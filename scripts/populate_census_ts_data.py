@@ -104,6 +104,9 @@ def build_ts_data_set(api_call_dict, begin_year=2005, end_year=2023):
     """
     Collects and organizes Census Bureau data for multiple years.
     """
+    begin_year = api_call_dict.pop("begin_year", begin_year)
+    end_year = api_call_dict.pop("end_year", end_year)
+
     dataframes = []
     missing_years = []
 
