@@ -34,6 +34,8 @@ def build_dashboard(app, data_dict):
             ),
             html.H1("Select variable"),
             dcc.Dropdown(id="display-variable-dropdown"),
+            html.H1("Select year"),
+            dcc.Dropdown(id="display-year-dropdown"),
             dcc.Graph(id="map_graph", style={"width": "100%", "height": "80vh"}),
             data_stores,
         ]
@@ -47,6 +49,14 @@ def build_dashboard(app, data_dict):
             {"label": col[:-5], "value": col}
             for col in pd.DataFrame(plotdata).columns
             if col.endswith("_data")
+        ]
+        return options
+
+    @app.callback(Output("display-year-dropdown", "options"), Input("plotdata", "data"))
+    def update_year_dropdown(plotdata):
+        options = [
+            {"label": year, "value": year}
+            for year in sorted(pd.DataFrame(plotdata)["year"].unique())
         ]
         return options
 
@@ -75,9 +85,11 @@ def build_dashboard(app, data_dict):
         State("geodata", "data"),
         Input("plotdata", "data"),
         Input("display-variable-dropdown", "value"),
+        Input("display-year-dropdown", "value"),
     )
-    def update_map(geodata, plotdata, display_var):
+    def update_map(geodata, plotdata, display_var, display_year):
         plotdata_df = pd.DataFrame(plotdata)
+        plotdata_df = plotdata_df[plotdata_df["year"] == display_year]
 
         print("rendering map")
         fig = px.choropleth_mapbox(
