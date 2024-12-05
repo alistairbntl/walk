@@ -1,10 +1,21 @@
+import logging
 from dataclasses import dataclass
 
-# from config import get_db_connection
+from av_core.api_tools.API_requests import make_api_call
+
 from urllib.parse import urlencode
 
 CENSUS_DATA_API_BASE = "https://api.census.gov/data/"
 API_KEY = "6c1399af793891246545517f96f88674a0282315"
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def make_census_api_call(api_dict):
+    cac = CensusAPIConfig(**api_dict)
+    headers = {"Content-Type": "application/json"}
+    return make_api_call(cac.build_data_query_url(), headers)
 
 
 @dataclass
@@ -15,12 +26,12 @@ class CensusAPIConfig:
     """
 
     year: int
-    dataset: str
     type_: str
     variables: list
-    tract: list
     state: list
-    county: list
+    dataset: str = "acs"
+    tract: list = None
+    county: list = None
 
     def __post_init__(self):
         self.base_url = self.build_base_url()
@@ -53,17 +64,5 @@ class CensusAPIConfig:
         return f"{url}&{query_string}"
 
 
-def main():
-    acs_2023 = CensusAPIConfig(
-        year=2023,
-        dataset="acs",
-        type_="acs1",
-        variables=["NAME", "B01001_001E", "B01002_001E"],
-        tract=None,
-        state=["51"],
-        county=["*"],
-    )
-
-
 if __name__ == "__main__":
-    main()
+    pass
