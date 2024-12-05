@@ -83,8 +83,8 @@ def build_dashboard(app, data_dict):
         fig = px.choropleth_mapbox(
             plotdata_df,
             geojson=geodata,
-            featureidkey="properties.NAME",
-            locations="NAME",
+            featureidkey="properties.name",
+            locations="name",
             color=display_var,
             color_continuous_scale="Turbo",
             range_color=(
