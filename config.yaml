@@ -1,0 +1,13 @@
+database:
+  type: sqlite
+  path: "/home/alistair/walk/data/walk_db/walk.db"
+
+shapefiles:
+  counties:
+      path: "~/walk/data/geographic_data/county_shapefiles/tl_2023_us_county.shp"
+  virginia_census_tract:
+      path: "~/walk/data/geographic_data/census_tract_shapefiles/tl_2023_51_tract.shp"
+
+datacaches:
+  interactive_map_data:
+      path: "~/walk/data/tmp_pickle_files/interactive_map_data.pkl"

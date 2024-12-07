@@ -1,6 +1,8 @@
-import pandas as pd
-import json
 import geopandas as gpd
+import json
+import pandas as pd
+from pathlib import Path
+import pickle
 
 from core.utils import load_config
 
@@ -34,53 +36,8 @@ def get_shapefiles(config):
     census_tracts_shape = census_tracts_shape[
         census_tracts_shape["COUNTYFP"].isin(richmond_counties["COUNTYFP"].to_list())
     ].reset_index()
-    #    census_tracts_geojson = json.loads(census_tracts.copy().to_json())
 
     return counties_shape, census_tracts_shape
-
-
-def main():
-    ### Initialization Step ###
-    config = load_config()
-
-    ### Collect Shapefile Data ###
-
-    counties_shape, census_tract_shape = get_shapefiles(config)
-
-    ### Data Load ###
-
-    api_call_dict = {
-        "type_": "acs1",
-        "variables": DASHBOARD_VARIABLES,
-        "state": ["51"],
-        "county": ["*"],
-        "begin_year": 2021,
-        "end_year": 2023,
-    }
-
-    county_data_dict = get_regional_data(api_call_dict, counties_shape)
-
-    # census_tract data
-    api_call_dict = {
-        "type_": "acs5",
-        "variables": DASHBOARD_VARIABLES,
-        "state": ["51"],
-        "tract": ["*"],
-        "begin_year": 2021,
-        "end_year": 2023,
-    }
-
-    census_tract_dict = get_regional_data(
-        api_call_dict, census_tract_shape, geolevel="tract"
-    )
-
-    # aggregate data
-    data_dict = {
-        "county": county_data_dict,
-        "census_tract": census_tract_dict,
-    }
-
-    return data_dict
 
 
 def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
@@ -116,6 +73,64 @@ def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
     regional_data = regional_data_df.to_dict("records")
 
     return {"data": regional_data, "geojson": regional_geojson}
+
+
+def main(rebuild_data=True, cache_results=True):
+    ### Initialization Step ###
+    config = load_config()
+
+    ### try to return cached data before rebuilding ###
+    if (
+        Path(config["datacaches"]["interactive_map_data"]["path"]).exists()
+        and not rebuild_data
+    ):
+        return pickle.load(config["datacaches"]["interactive_map_data"]["path"])
+
+    ### Collect Shapefile Data ###
+    counties_shape, census_tract_shape = get_shapefiles(config)
+
+    ### Data Load ###
+
+    api_call_dict = {
+        "type_": "acs1",
+        "variables": DASHBOARD_VARIABLES,
+        "state": ["51"],
+        "county": ["*"],
+        "begin_year": 2021,
+        "end_year": 2023,
+    }
+
+    county_data_dict = get_regional_data(api_call_dict, counties_shape)
+
+    # census_tract data
+    api_call_dict = {
+        "type_": "acs5",
+        "variables": DASHBOARD_VARIABLES,
+        "state": ["51"],
+        "tract": ["*"],
+        "begin_year": 2021,
+        "end_year": 2023,
+    }
+
+    census_tract_dict = get_regional_data(
+        api_call_dict, census_tract_shape, geolevel="tract"
+    )
+
+    # aggregate data
+    data_dict = {
+        "county": county_data_dict,
+        "census_tract": census_tract_dict,
+    }
+
+    # cache dashboard data for future retrival
+    if cache_results:
+        with open(
+            Path(config["datacaches"]["interactive_map_data"]["path"]).expanduser(),
+            "wb",
+        ) as f:
+            pickle.dump(data_dict, f)
+
+    return data_dict
 
 
 if __name__ == "__main__":
