@@ -81,10 +81,15 @@ def main(rebuild_data=True, cache_results=True):
 
     ### try to return cached data before rebuilding ###
     if (
-        Path(config["datacaches"]["interactive_map_data"]["path"]).exists()
+        Path(config["datacaches"]["interactive_map_data"]["path"]).expanduser().exists()
         and not rebuild_data
     ):
-        return pickle.load(config["datacaches"]["interactive_map_data"]["path"])
+        with open(
+            Path(config["datacaches"]["interactive_map_data"]["path"]).expanduser(),
+            "rb",
+        ) as f:
+            data_dict = pickle.load(f)
+        return data_dict
 
     ### Collect Shapefile Data ###
     counties_shape, census_tract_shape = get_shapefiles(config)
