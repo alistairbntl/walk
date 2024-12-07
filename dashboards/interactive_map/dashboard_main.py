@@ -14,6 +14,7 @@ def build_dashboard(app, data_dict):
             dcc.Store(id="geodata", data=geo_dict),
             dcc.Store(id="plotdata", data=plotdata_dict),
             dcc.Store(id="metadata-store", data={"geolevel": "county"}),
+            dcc.Store(id="selected-geo"),
         ]
     )
 
@@ -30,6 +31,12 @@ def build_dashboard(app, data_dict):
         if pathname == "/region_detail":
             return dashboard_region_detail.layout
         return dashboard_choropleth.layout
+
+    @app.callback(Output("url", "pathname"), Input("selected-geo", "data"))
+    def update_url_on_selection(selected_geo):
+        if selected_geo:
+            return "/region_detail"
+        return "/"
 
     # register callbacks
     dashboard_choropleth.register_callbacks(app)

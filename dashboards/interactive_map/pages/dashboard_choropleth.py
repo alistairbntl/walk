@@ -138,6 +138,7 @@ def register_callbacks(app):
             locations="name",
             color=display_var,
             color_continuous_scale="Turbo",
+            custom_data=["unique_geo_id"],
             range_color=(
                 plotdata_df[display_var].min(),
                 plotdata_df[display_var].max(),
@@ -159,3 +160,16 @@ def register_callbacks(app):
         # )
 
         return fig
+
+    @app.callback(
+        Output("selected-geo", "data"),
+        Input("map_graph", "clickData"),
+    )
+    def store_selected_subgeo(click_data):
+        if click_data:
+            unique_geo_id = click_data["points"][0]["customdata"][
+                0
+            ]  # pull the unique_geo_id
+            return {"unique_geo_id": unique_geo_id}
+
+        return None
