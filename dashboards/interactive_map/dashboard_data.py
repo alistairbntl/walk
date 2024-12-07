@@ -60,6 +60,13 @@ def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
 
     regional_data_df = get_ts_data(api_call_dict)
 
+    # concate the geo identifier columns to reate a unique geo id.
+    # note, the order matters.  the column order should be defined
+    # from biggests to smallest
+    regional_data_df["unique_geo_id"] = regional_data_df[
+        join_columns[geolevel]["right_on"]
+    ].agg("".join, axis=1)
+
     # filter shape file to only include counties with data
     regional_df = pd.merge(
         regional_shape_df,
