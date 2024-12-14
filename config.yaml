@@ -3,6 +3,8 @@ database:
   path: "/home/alistair/walk/data/walk_db/walk.db"
 
 shapefiles:
+  states:
+      path: "~/walk/data/geographic_data/state_shapefiles/tl_2024_us_state.shp"
   counties:
       path: "~/walk/data/geographic_data/county_shapefiles/tl_2023_us_county.shp"
   virginia_census_tract:

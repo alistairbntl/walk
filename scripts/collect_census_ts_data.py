@@ -91,9 +91,10 @@ def interpolate_missing_data(df_, api_call_dict):
 
     Future iterations will likely need to handle this different.
     """
-    df_.loc[df_["county"].isna(), "county"] = "state"
+    geo_columns = [col for col in POSSIBLE_GEO_COLUMNS if col in df_.columns]
+
     # interpolate missing values
-    df_[api_call_dict["variables"]] = df_.groupby(["state", "county"])[
+    df_[api_call_dict["variables"]] = df_.groupby(geo_columns)[
         api_call_dict["variables"]
     ].apply(lambda group: group.interpolate(method="linear"))
 

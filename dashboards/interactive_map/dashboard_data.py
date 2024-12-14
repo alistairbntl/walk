@@ -11,15 +11,24 @@ from collect_census_ts_data import get_ts_data
 DASHBOARD_VARIABLES = ["NAME", "B01001_001E", "B01002_001E", "B19013_001E"]
 
 
-def get_shapefiles(config):
+def get_shapefiles(config) -> dict:
     """The shapefile data will need to reorganized at some point."""
 
     # collect and process geographic shape file data
+
+    # states
+    states_shape = gpd.read_file(config["shapefiles"]["states"]["path"])
+    states_shape["geometry"] = states_shape["geometry"].simplify(
+        tolerance=0.01, preserve_topology=True
+    )
+
+    # counties
     counties_shape = gpd.read_file(config["shapefiles"]["counties"]["path"])
     counties_shape["geometry"] = counties_shape["geometry"].simplify(
         tolerance=0.01, preserve_topology=True
     )
 
+    # census_tracts
     census_tracts_shape = gpd.read_file(
         config["shapefiles"]["virginia_census_tract"]["path"]
     )
@@ -37,11 +46,20 @@ def get_shapefiles(config):
         census_tracts_shape["COUNTYFP"].isin(richmond_counties["COUNTYFP"].to_list())
     ].reset_index()
 
-    return counties_shape, census_tracts_shape
+    return {
+        "counties_shape": counties_shape,
+        "census_tracts_shape": census_tracts_shape,
+        "states_shape": states_shape,
+    }
 
 
 def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
     join_columns = {
+        "state": {
+            "left_on": ["STATEFP"],
+            "right_on": ["state_id"],
+            "geojson_cols": ["STATEFP", "name", "geometry"],
+        },
         "county": {
             "left_on": ["STATEFP", "COUNTYFP"],
             "right_on": ["state_id", "county_id"],
@@ -99,20 +117,34 @@ def main(rebuild_data=True, cache_results=True):
         return data_dict
 
     ### Collect Shapefile Data ###
-    counties_shape, census_tract_shape = get_shapefiles(config)
+    shapes_dict = get_shapefiles(config)
 
     ### Data Load ###
+    begin_year = 2021
+    end_year = 2023
+
+    api_call_dict = {
+        "type_": "acs1",
+        "variables": DASHBOARD_VARIABLES,
+        "state": ["*"],
+        "begin_year": begin_year,
+        "end_year": end_year,
+    }
+
+    state_data_dict = get_regional_data(
+        api_call_dict, shapes_dict["states_shape"], geolevel="state"
+    )
 
     api_call_dict = {
         "type_": "acs1",
         "variables": DASHBOARD_VARIABLES,
         "state": ["51"],
         "county": ["*"],
-        "begin_year": 2021,
-        "end_year": 2023,
+        "begin_year": begin_year,
+        "end_year": end_year,
     }
 
-    county_data_dict = get_regional_data(api_call_dict, counties_shape)
+    county_data_dict = get_regional_data(api_call_dict, shapes_dict["counties_shape"])
 
     # census_tract data
     api_call_dict = {
@@ -120,16 +152,17 @@ def main(rebuild_data=True, cache_results=True):
         "variables": DASHBOARD_VARIABLES,
         "state": ["51"],
         "tract": ["*"],
-        "begin_year": 2021,
-        "end_year": 2023,
+        "begin_year": begin_year,
+        "end_year": end_year,
     }
 
     census_tract_dict = get_regional_data(
-        api_call_dict, census_tract_shape, geolevel="tract"
+        api_call_dict, shapes_dict["census_tracts_shape"], geolevel="tract"
     )
 
     # aggregate data
     data_dict = {
+        "state": state_data_dict,
         "county": county_data_dict,
         "census_tract": census_tract_dict,
     }
