@@ -5,6 +5,11 @@ import dash.html as html
 from dash.dependencies import Input, Output, State
 import plotly.express as px
 
+GEOLEVEL_RELATIONSHIP = {
+    "state": {"parent": None, "child": "county"},
+    "county": {"parent": "state", "child": "census_tract"},
+    "census_tract": {"parent": "county", "child": None},
+}
 
 layout = html.Div(
     [
@@ -29,6 +34,7 @@ layout = html.Div(
                             options=[
                                 {"label": "Census Tract", "value": "census_tract"},
                                 {"label": "County", "value": "county"},
+                                {"label": "State", "value": "state"},
                             ],
                             value="county",
                         ),
@@ -99,16 +105,23 @@ def register_callbacks(app):
 
         return options, default_value
 
-    @app.callback(Output("metadata-store", "data"), Input("geolevel-dropdown", "value"))
+    @app.callback(
+        Output("metadata-level", "data"),
+        Input("geolevel-dropdown", "value"),
+    )
     def update_metadata(geolevel):
         print(f"callback triggered with {geolevel} values")
-        return {"geolevel": geolevel}
+        return {
+            "geolevel": geolevel,
+            "geolevel_parent": GEOLEVEL_RELATIONSHIP[geolevel]["parent"],
+            "geolevel_child": GEOLEVEL_RELATIONSHIP[geolevel]["child"],
+        }
 
     @app.callback(
         Output("geodata", "data"),
         Output("plotdata", "data"),
         State("all_data", "data"),
-        Input("metadata-store", "data"),
+        Input("metadata-level", "data"),
     )
     def update_plotdata(all_data, metadata):
         geolevel = metadata["geolevel"]
@@ -116,7 +129,6 @@ def register_callbacks(app):
         geolevel_data_dict = all_data.get(geolevel, {})
         geo_dict = geolevel_data_dict.get("geojson", {})
         data_dict = geolevel_data_dict.get("data", {})
-
         return geo_dict, data_dict
 
     @app.callback(
@@ -138,14 +150,14 @@ def register_callbacks(app):
             locations="name",
             color=display_var,
             color_continuous_scale="Turbo",
-            custom_data=["unique_geo_id"],
+            custom_data=["unique_geo_id", "delimited_geo_id"],
             range_color=(
                 plotdata_df[display_var].min(),
                 plotdata_df[display_var].max(),
             ),
             center={"lat": 36.6455249, "lon": -77.9564560},
             mapbox_style="carto-positron",
-            zoom=3,
+            zoom=6,
             opacity=0.2,
         )
 
@@ -162,14 +174,21 @@ def register_callbacks(app):
         return fig
 
     @app.callback(
-        Output("selected-geo", "data"),
+        Output("metadata-location", "data"),
         Input("map_graph", "clickData"),
+        State("metadata-level", "data"),
     )
-    def store_selected_subgeo(click_data):
+    def store_selected_subgeo(click_data, metadata_level):
         if click_data:
             unique_geo_id = click_data["points"][0]["customdata"][
                 0
             ]  # pull the unique_geo_id
-            return {"unique_geo_id": unique_geo_id}
+            delimited_geo_id = click_data["points"][0]["customdata"][
+                1
+            ]  # pull the unique_geo_id
+            return {
+                "unique_geo_id": unique_geo_id,
+                "delimited_geo_id": delimited_geo_id,
+            }
 
         return None

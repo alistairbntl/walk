@@ -84,6 +84,9 @@ def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
     regional_data_df["unique_geo_id"] = regional_data_df[
         join_columns[geolevel]["right_on"]
     ].agg("".join, axis=1)
+    regional_data_df["delimited_geo_id"] = regional_data_df[
+        join_columns[geolevel]["right_on"]
+    ].agg("-".join, axis=1)
 
     # filter shape file to only include counties with data
     regional_df = pd.merge(
@@ -136,7 +139,7 @@ def main(rebuild_data=True, cache_results=True):
     )
 
     api_call_dict = {
-        "type_": "acs1",
+        "type_": "acs5",
         "variables": DASHBOARD_VARIABLES,
         "state": ["51"],
         "county": ["*"],
