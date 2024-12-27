@@ -5,14 +5,6 @@ from av_core.visualize_tools.graph_builders import create_multi_line_chart
 from dash import html, dcc, Input, Output, State
 
 
-def build_table_data(location, level, all_data) -> pd.DataFrame:
-    """
-    Potentially useful function for the future - a ranking table of values.
-    """
-    all_locations_df = pd.DataFrame(all_data[level["geolevel"]]["data"])
-    return
-
-
 def build_plot_ts(location, level, all_data) -> pd.DataFrame:
     all_locations_df = pd.DataFrame(all_data[level["geolevel"]]["data"])
     location_mask = all_locations_df["unique_geo_id"] == location["unique_geo_id"]
@@ -91,12 +83,55 @@ demographic_charts = html.Div(
     className="row",
 )
 
-demographic_tables = html.Div()
+workforce_charts = html.Div(
+    [
+        html.Div(
+            [
+                dcc.Graph(id="education_less_hs_graph"),
+            ],
+            className="chart-container",
+        ),
+        html.Div(
+            [
+                dcc.Graph(id="education_college_degree_graph"),
+            ],
+            className="chart-container",
+        ),
+    ],
+    className="row",
+)
+
+housing_charts = html.Div(
+    [
+        html.Div(
+            [
+                dcc.Dropdown(
+                    id="housing-units-dropdown",
+                    options=[
+                        {"label": "level", "value": "level"},
+                        {"label": "diff", "value": "diff"},
+                        {"label": "perc_chg", "value": "perc_chg"},
+                    ],
+                    value="level",
+                    placeholder="select data transformation",
+                ),
+                dcc.Graph(id="housing_units_graph"),
+            ],
+            className="chart-container",
+        ),
+    ],
+    className="row",
+)
 
 layout = html.Div(
     [
         html.Div(id="page_title"),
+        html.H2("Demographics"),
         demographic_charts,
+        html.H2("Workforce"),
+        workforce_charts,
+        html.H2("Housing Supply"),
+        housing_charts,
         html.A("Back to Map", href="/"),
         dcc.Store(id="local-plot-data"),
     ]
@@ -144,3 +179,34 @@ def register_callbacks(app):
     def update_details_page(local_plot_data, data_transform):
         plot_data_df = pd.DataFrame(local_plot_data)
         return generate_ts_plot(plot_data_df, "median_age_data", data_transform)
+
+    @app.callback(
+        Output("housing_units_graph", "figure"),
+        Input("local-plot-data", "data"),
+        Input("housing-units-dropdown", "value"),
+    )
+    def update_housing_units_graph(local_plot_data, data_transform):
+        plot_data_df = pd.DataFrame(local_plot_data)
+        return generate_ts_plot(
+            plot_data_df, "total_occupied_housing_units_data", data_transform
+        )
+
+    @app.callback(
+        Output("education_less_hs_graph", "figure"),
+        Input("local-plot-data", "data"),
+        Input("housing-units-dropdown", "value"),
+    )
+    def update_housing_units_graph(local_plot_data, data_transform):
+        plot_data_df = pd.DataFrame(local_plot_data)
+        return generate_ts_plot(plot_data_df, "percent_less_hs_data", data_transform)
+
+    @app.callback(
+        Output("education_college_degree_graph", "figure"),
+        Input("local-plot-data", "data"),
+        Input("housing-units-dropdown", "value"),
+    )
+    def update_housing_units_graph(local_plot_data, data_transform):
+        plot_data_df = pd.DataFrame(local_plot_data)
+        return generate_ts_plot(
+            plot_data_df, "percent_college_degree_data", data_transform
+        )

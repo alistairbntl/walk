@@ -8,7 +8,36 @@ from core.utils import load_config
 
 from collect_census_ts_data import get_ts_data
 
-DASHBOARD_VARIABLES = ["NAME", "B01001_001E", "B01002_001E", "B19013_001E"]
+DASHBOARD_VARIABLES = [
+    "NAME",
+    "B01001_001E",
+    "B01002_001E",
+    "B19013_001E",
+    "B25013_001E",
+    "B25013_002E",
+    "B25013_007E",
+    # education data
+    "B15003_001E",
+    "B15003_002E",
+    "B15003_003E",
+    "B15003_004E",
+    "B15003_005E",
+    "B15003_006E",
+    "B15003_007E",
+    "B15003_008E",
+    "B15003_009E",
+    "B15003_010E",
+    "B15003_011E",
+    "B15003_012E",
+    "B15003_013E",
+    "B15003_014E",
+    "B15003_015E",
+    "B15003_016E",
+    "B15003_022E",
+    "B15003_023E",
+    "B15003_024E",
+    "B15003_025E",
+]
 
 
 def get_shapefiles(config) -> dict:
@@ -53,6 +82,49 @@ def get_shapefiles(config) -> dict:
     }
 
 
+def compute_education_ratios(regional_data_df):
+    """
+    computes various percentages based on educational status
+    """
+    regional_data_df["percent_less_hs_data"] = (
+        regional_data_df[
+            [
+                "population_25_plus_no_schooling_data",
+                "population_25_plus_nursery_school_data",
+                "population_25_plus_kindergarten_data",
+                "population_25_plus_1st_grade_data",
+                "population_25_plus_2nd_grade_data",
+                "population_25_plus_3rd_grade_data",
+                "population_25_plus_4th_grade_data",
+                "population_25_plus_5th_grade_data",
+                "population_25_plus_6th_grade_data",
+                "population_25_plus_7th_grade_data",
+                "population_25_plus_8th_grade_data",
+                "population_25_plus_9th_grade_data",
+                "population_25_plus_10th_grade_data",
+                "population_25_plus_11th_grade_data",
+                "population_25_plus_12th_grade_no_diploma_data",
+            ]
+        ].sum(axis=1)
+        / regional_data_df["total_population_25_plus_data"]
+        * 100
+    )
+
+    regional_data_df["percent_college_degree_data"] = (
+        regional_data_df[
+            [
+                "population_25_plus_bachelors_degree_data",
+                "population_25_plus_masters_degree_data",
+                "population_25_plus_professional_degree_data",
+                "population_25_plus_phd_data",
+            ]
+        ].sum(axis=1)
+        / regional_data_df["total_population_25_plus_data"]
+    ) * 100
+
+    return regional_data_df
+
+
 def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
     join_columns = {
         "state": {
@@ -75,8 +147,9 @@ def get_regional_data(api_call_dict, regional_shape_df, geolevel="county"):
     geo_columns = join_columns[geolevel]
 
     # make an API call to collect the county display data
-
     regional_data_df = get_ts_data(api_call_dict)
+
+    regional_data_df = compute_education_ratios(regional_data_df)
 
     # concate the geo identifier columns to reate a unique geo id.
     # note, the order matters.  the column order should be defined
