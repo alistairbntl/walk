@@ -1,15 +1,13 @@
-from dash import register_page
-import dash.dcc as dcc
-import dash.html as html
-
+from dash import html, dcc, register_page
 import dashboard_tools.dashboard_controls as dc
 from stores.regression_stores import regression_stores
 
 register_page(__name__, path="/regression")
 
-
+# Header
 header = dc.create_header("Regression Analysis Dashboard")
 
+# Controls Section
 controls = html.Div(
     [
         html.Div(
@@ -43,6 +41,7 @@ controls = html.Div(
     },
 )
 
+# Graphs Section
 analysis = html.Div(
     [
         html.Div(
@@ -76,4 +75,9 @@ analysis = html.Div(
         ),
     ]
 )
-layout = html.Div([header, controls, analysis])
+
+# Final page layout
+layout = html.Div(
+    [*regression_stores, header, controls, analysis],
+    style={"fontFamily": "Arial, sans-serif", "backgroundColor": "#f5f5f5"},
+)
