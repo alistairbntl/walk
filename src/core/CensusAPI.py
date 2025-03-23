@@ -6,7 +6,7 @@ from av_core.api_tools.API_requests import make_api_call
 from urllib.parse import urlencode
 
 CENSUS_DATA_API_BASE = "https://api.census.gov/data/"
-API_KEY = "6c1399af793891246545517f96f88674a0282315"
+API_KEY = None
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
