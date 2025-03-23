@@ -13,7 +13,7 @@ def open_browser():
 def main(port=8051):
     app = dash.Dash(__name__)
 
-    data_dict = dashboard_data.main(rebuild_data=False)
+    data_dict = dashboard_data.main(rebuild_data=True)
 
     Timer(1, open_browser).start()
 

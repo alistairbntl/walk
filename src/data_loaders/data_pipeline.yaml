@@ -9,6 +9,10 @@ acs_fields:
     - "B07001_049E"
     - "B07001_065E"
     - "B07001_081E"
+    - "B11003_001E"
+    - "B11003_002E"
+    - "B11003_003E"
+    - "B11003_008E"
   workforce:
     - "NAME"
     - "B15003_001E"
@@ -36,6 +40,7 @@ acs_fields:
     - "B25013_001E"
     - "B25013_002E"
     - "B25013_007E"
+    - "B25077_001E"
 
 raw_fields:
   demographics:
@@ -52,11 +57,16 @@ raw_fields:
     - "moved_from_different_state_data"
     - "moved_from_abroad_data"
     - "total_population_migration_data"
+    - "total_families_data"
+    - "married_couple_families_data"
+    - "married_couple_families_with_own_children_data"
+    - "other_families_data"
   workforce:
     - "geo_level"
     - "unique_geo_id"
     - "delimited_geo_id"
     - "year"
+    - "name"
     - "total_population_25_plus_data"
     - "population_25_plus_no_schooling_data"
     - "population_25_plus_nursery_school_data"
@@ -82,9 +92,11 @@ raw_fields:
     - "unique_geo_id"
     - "delimited_geo_id"
     - "year"
+    - "name"
     - "total_occupied_housing_units_data"
     - "owner_occupied_housing_units_data"
     - "renter_occupied_housing_units_data"
+    - "median_home_price_data"
 
 processed_fields:
   demographics:
@@ -100,6 +112,41 @@ processed_fields:
     - "percent_moved_from_different_county_same_state_in_last_year_data"
     - "percent_moved_from_different_state_in_last_year_data"
     - "percent_moved_from_abroad_in_last_year_data"
+    - "families_per_person_data"
+    - "percent_families_married_data"
+    - "percent_families_married_with_own_children_data"
+  workforce:
+    - "geo_level"
+    - "unique_geo_id"
+    - "delimited_geo_id"
+    - "year"
+    - "name"
+    - "percent_less_hs_data"
+    - "percent_college_degree_data"
+  housing_market:
+    - "geo_level"
+    - "unique_geo_id"
+    - "delimited_geo_id"
+    - "year"
+    - "name"
+    - "owner_occupied_housing_units_data"
+    - "renter_occupied_housing_units_data"
+    - "median_home_price_with_nulls_data"
+    - "owner_occupied_housing_units_data_percent"
+    - "renter_occupied_housing_units_data_percent"
+    - "median_home_price_data_1_period_growth_rate"
+    - "median_home_price_data_5_period_growth_rate"
+
+model_output_fields:
+  median_home_price_census_tract_model:
+    - "geo_level"
+    - "unique_geo_id"
+    - "delimited_geo_id"
+    - "year"
+    - "model_name"
+    - "demeaned_actual_home_price"
+    - "demeaned_predicted_home_price"
+
 
 raw_tables:
   demographics: "raw_data_census_bureau_demographic_ts"
@@ -108,3 +155,12 @@ raw_tables:
 
 processed_tables:
   demographics: "processed_data_census_bureau_demographic_ts"
+  workforce: "processed_data_census_bureau_workforce_ts"
+  housing_market: "processed_data_census_bureau_housing_market_ts"
+
+model_output_tables:
+  median_home_price_census_tract_model: "ml_median_home_price_estimate"
+
+dsml_sql_scripts:
+  demographic_clusters: "/home/alistair/walk/scripts/dsml/demographic_clusters.sql"
+  median_home_price_census_tract_model_v0: "/home/alistair/walk/scripts/dsml/median_home_price_ols/model/load_predictions.sql"

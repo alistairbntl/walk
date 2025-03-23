@@ -101,7 +101,7 @@ def register_callbacks(app):
         ]
 
         options = [{"label": year, "value": year} for year in year_options]
-        default_value = year_options[0]
+        default_value = year_options[-1]
 
         return options, default_value
 
@@ -129,6 +129,7 @@ def register_callbacks(app):
         geolevel_data_dict = all_data.get(geolevel, {})
         geo_dict = geolevel_data_dict.get("geojson", {})
         data_dict = geolevel_data_dict.get("data", {})
+
         return geo_dict, data_dict
 
     @app.callback(
@@ -161,7 +162,7 @@ def register_callbacks(app):
             opacity=0.2,
         )
 
-        #        mapbox_access_token = "pk.eyJ1IjoiYWJlbnRsZXk5MDUiLCJhIjoiY2x6ZWsyZ3FhMHphNzJscHE4YXVnYm1wZSJ9.WMQOh4wkglYc1ypQUAaIrg"
+        # mapbox_access_token = "pk.eyJ1IjoiYWJlbnRsZXk5MDUiLCJhIjoiY2x6ZWsyZ3FhMHphNzJscHE4YXVnYm1wZSJ9.WMQOh4wkglYc1ypQUAaIrg"
 
         # fig.update_layout(
         #     mapbox_style="mapbox://styles/mapbox/streets-v11",  # High-resolution Mapbox style

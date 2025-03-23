@@ -13,3 +13,9 @@ shapefiles:
 datacaches:
   interactive_map_data:
       path: "~/walk/data/tmp_pickle_files/interactive_map_data.pkl"
+
+dashboard_data_pulls:
+  cluster_dashboard:
+      path: "/home/alistair/walk/dashboards/cluster_developer/demographic_clusters.sql"
+  real_estate_regional_report:
+      path: "/home/alistair/walk/reports/real_estate_dashboard/regional_report_data.sql"

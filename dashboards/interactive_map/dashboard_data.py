@@ -3,36 +3,32 @@ import pandas as pd
 from pathlib import Path
 import pickle
 
+from core.pd_utils import percentile_rank
 from core.utils import load_config, get_db_manager
 
+from geo_metadata import GEO_METADATA
 from load_shapefiles import get_shapefiles
 
 DASHBOARD_VARIABLES = {}
 
 
 def get_regional_data(regional_shape_df, geolevel="county"):
-    join_columns = {
-        "state": {
-            "left_on": ["STATEFP"],
-            "right_on": ["state_id"],
-            "geojson_cols": ["STATEFP", "name", "geometry"],
-        },
-        "county": {
-            "left_on": ["STATEFP", "COUNTYFP"],
-            "right_on": ["state_id", "county_id"],
-            "geojson_cols": ["STATEFP", "COUNTYFP", "name", "geometry"],
-        },
-        "tract": {
-            "left_on": ["STATEFP", "COUNTYFP", "TRACTCE"],
-            "right_on": ["state_id", "county_id", "tract_id"],
-            "geojson_cols": ["STATEFP", "COUNTYFP", "TRACTCE", "name", "geometry"],
-        },
-    }
+    join_columns = GEO_METADATA
 
     geo_columns = join_columns[geolevel]
 
     # run sql queries to load_data
     regional_data_df = get_data(geolevel)
+
+    for col, association in [
+        ("population_density_data", "positive"),
+        ("median_age_data", "positive"),
+        ("percent_did_not_move_in_last_year_data", "negative"),
+    ]:
+        rank = True if association == "positive" else False
+        regional_data_df[f"{col}_scaled"] = percentile_rank(
+            regional_data_df[col], ascending=rank
+        )
 
     # filter shape file to only include counties with data
     regional_df = pd.merge(
@@ -89,7 +85,7 @@ def main(rebuild_data=True, cache_results=True):
     )
 
     census_tract_dict = get_regional_data(
-        shapes_dict["census_tracts_shape"], geolevel="tract"
+        shapes_dict["census_tracts_shape"], geolevel="census_tract"
     )
 
     # aggregate data

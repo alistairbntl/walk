@@ -12,6 +12,8 @@ from av_core.api_tools.API_requests import make_api_call
 from core.CensusAPI import CensusAPIConfig
 from core.utils import get_db_manager
 
+from geo_metadata import GEO_METADATA
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -155,9 +157,17 @@ def add_missing_years(df_, missing_years):
             missing_rows.append(row)
 
     missing_df = pd.DataFrame(missing_rows)
+
     df_ = pd.concat([df_, missing_df], ignore_index=True)
 
     return df_.sort_values(by=geo_columns + ["year"]).reset_index(drop=True)
+
+
+def set_unique_geo_id(df_, api_call_dict):
+    """
+    TODO - figure out a good way to handle this step
+    """
+    return df_
 
 
 def get_ts_data(api_call_dict):
@@ -174,6 +184,9 @@ def get_ts_data(api_call_dict):
 
     logger.info("cleaning output df...")
     df_ = rename_df_columns(df_, api_call_dict, db_manager)
+
+    logger.info("setting unique geo id")
+    df_ = set_unique_geo_id(df_, api_call_dict)
 
     db_manager.close()
 

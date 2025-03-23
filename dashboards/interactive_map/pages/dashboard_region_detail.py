@@ -1,6 +1,9 @@
 import pandas as pd
 
-from av_core.visualize_tools.graph_builders import create_multi_line_chart
+from av_core.visualize_tools.graph_builders import (
+    create_multi_line_chart,
+    create_horizontal_ranking_bar_chart,
+)
 
 from dash import html, dcc, Input, Output, State
 
@@ -49,40 +52,55 @@ demographic_charts = html.Div(
     [
         html.Div(
             [
-                dcc.Dropdown(
-                    id="population-graph-dropdown",
-                    options=[
-                        {"label": "level", "value": "level"},
-                        {"label": "diff", "value": "diff"},
-                        {"label": "perc_chg", "value": "perc_chg"},
+                html.Div(
+                    [
+                        dcc.Dropdown(
+                            id="population-graph-dropdown",
+                            options=[
+                                {"label": "level", "value": "level"},
+                                {"label": "diff", "value": "diff"},
+                                {"label": "perc_chg", "value": "perc_chg"},
+                            ],
+                            value="level",
+                            placeholder="select data transformation",
+                        ),
+                        dcc.Graph(id="population_graph"),
                     ],
-                    value="level",
-                    placeholder="select data transformation",
+                    className="chart-container",
                 ),
-                dcc.Graph(id="population_graph"),
+                html.Div(
+                    [
+                        dcc.Dropdown(
+                            id="median-age-graph-dropdown",
+                            options=[
+                                {"label": "level", "value": "level"},
+                                {"label": "diff", "value": "diff"},
+                                {"label": "perc_chg", "value": "perc_chg"},
+                            ],
+                            value="level",
+                            placeholder="select data transformation",
+                        ),
+                        dcc.Graph(id="median_age_graph"),
+                    ],
+                    className="chart-container",
+                ),
             ],
-            className="chart-container",
+            className="row",
         ),
         html.Div(
             [
-                dcc.Dropdown(
-                    id="median-age-graph-dropdown",
-                    options=[
-                        {"label": "level", "value": "level"},
-                        {"label": "diff", "value": "diff"},
-                        {"label": "perc_chg", "value": "perc_chg"},
+                html.Div(
+                    [
+                        dcc.Graph(id="demographic_horizontal_ranking_graph"),
                     ],
-                    value="level",
-                    placeholder="select data transformation",
+                    className="chart-container",
                 ),
-                dcc.Graph(id="median_age_graph"),
             ],
-            className="chart-container",
+            className="row",
         ),
     ],
-    className="row",
+    className="container",
 )
-
 workforce_charts = html.Div(
     [
         html.Div(
@@ -209,4 +227,32 @@ def register_callbacks(app):
         plot_data_df = pd.DataFrame(local_plot_data)
         return generate_ts_plot(
             plot_data_df, "percent_college_degree_data", data_transform
+        )
+
+    @app.callback(
+        Output("demographic_horizontal_ranking_graph", "figure"),
+        Input("local-plot-data", "data"),
+    )
+    def update_demographic_ranking_graph(local_plot_data):
+        plot_data_df = pd.DataFrame(local_plot_data).query("year==2023")
+        # arb - need a better approach here
+        name = plot_data_df["unique_geo_id"].iloc[0]
+
+        return create_horizontal_ranking_bar_chart(
+            plot_data_df,
+            name,
+            [
+                "population_density_data",
+                "median_age_data",
+                "percent_did_not_move_in_last_year_data",
+            ],
+            title="Relative Demographic Position",
+            annotation_dict={
+                "population_density_data": {"left": "rural", "right": "urban"},
+                "median_age_data": {"left": "younger", "right": "older"},
+                "percent_did_not_move_in_last_year_data": {
+                    "left": "less-mobile",
+                    "right": "more-mobile",
+                },
+            },
         )

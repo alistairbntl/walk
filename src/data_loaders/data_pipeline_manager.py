@@ -1,3 +1,11 @@
+"""The DataPipelineManager is a base class which manages the
+collection, transformation and upload of data.
+
+Every pipeline manager instance speicifies upload / download
+tables and fields.  The details of these tables and fields
+are specified in the data_pipeline.yaml file.
+"""
+
 from abc import ABC, abstractmethod
 import pandas as pd
 from typing import Dict
