@@ -5,5 +5,5 @@ cluster_stores = [
     dcc.Store(id="cluster-plotdata"),
     dcc.Store(id="cluster-metadata-level", data={"geolevel": "county"}),
     dcc.Store(id="cluster-columns", data=[]),
-    dcc.Store(id="cluster_results"),
+    dcc.Store(id="cluster-results"),
 ]

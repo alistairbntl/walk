@@ -3,7 +3,7 @@ import webbrowser
 from threading import Timer
 
 from dashboard_tools.dashboard_data_loader import ClusterDashboardDataLoader
-from cluster_dashboard_main import build_dashboard
+from dashboard_layout import build_dashboard
 
 
 def open_browser():
